@@ -30,8 +30,8 @@ public class JsonToStrInterceptor implements Interceptor {
         byte[] body = event.getBody();
 //        取出消息头
         Map<String, String> headers = event.getHeaders();
-//        设置消息头 u001,手机,iPhone11,5500,1,2020-02-10
-        headers.put("u001","手机 iPhone11,5500,1,2020-02-10");
+//        设置消息头 u001,手机,iPhone11,5500,1,2020-02-10 16777472
+        headers.put("u001","手机 iPhone11,5500,1,2020-02-10,16777472");
 //        把消息头set回event
         event.setHeaders(headers);
 
