@@ -29,14 +29,17 @@ public class MySqlSink extends AbstractSink implements Configurable{
                 byte[] body = event.getBody();
                 String message = new String(body, "UTF-8");
                 String[] arr = message.split(",");
-//               u001,手机,iPhone11,5500,1,2020-02-10
+//               u001,手机,iPhone11,5500,1,2020-02-10,16777472
                  String user =arr[0];
                  String phone =arr[1];
                  String phonetype =arr[2];
                  Double price =Double.valueOf(arr[3]);
                  Integer counts = Integer.valueOf(arr[4]);
                  String time = arr[5];
-                 stat.execute("insert into t_datas(t_user,phone,phonetype,price,counts,time) value('"+user+","+phone+","+phonetype+","+price+","+counts+","+time+"')" );
+                 String ip = arr[6];
+
+
+                 stat.execute("insert into t_datas(t_user,phone,phonetype,price,counts,time,ip) value('"+user+","+phone+","+phonetype+","+price+","+counts+","+time+","+ip+" ')" );
                  status = Status.READY;
             }else{
                 status = Status.BACKOFF;

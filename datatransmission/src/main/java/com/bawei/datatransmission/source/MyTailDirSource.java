@@ -43,7 +43,6 @@ public class MyTailDirSource extends AbstractSource implements Configurable, Pol
         }
         return status;
     }
-
     public long getBackOffSleepIncrement() {
         return 0;
     }
@@ -59,6 +58,8 @@ public class MyTailDirSource extends AbstractSource implements Configurable, Pol
         filePath = context.getString("filePath");
 
     }
+
+
 
 //    读取偏移量文件，设置偏移量，打开被监听的文件
     @Override
