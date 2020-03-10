@@ -1,0 +1,285 @@
+# 安装yarn集群
+ 1、在node1进入hadoop的安装目录下的/usr/local/hadoop-2.7.5/etc/hadoop(供参考)目录下,将mapred-site.xml.template文件通过 mv mapred-site.xml.template mapred-site.xml 命令修改为mapred-site.xml文件:
+        <property>
+                  <name>mapreduce.framework.name</name>
+                  <value>yarn</value>
+         </property>
+        2、在node1同目录下配置yarn-site.xml文件
+              <property>
+                 <name>yarn.nodemanager.aux-services</name>
+                 <value>mapreduce_shuffle</value>
+         </property>
+        <property>
+                 <name>yarn.resourcemanager.ha.enabled</name>
+                 <value>true</value>
+         </property>
+         <property>
+                 <name>yarn.resourcemanager.cluster-id</name>
+                 <value>cluster1</value>
+         </property>
+         <property>
+                 <name>yarn.resourcemanager.ha.rm-ids</name>
+                 <value>rm1,rm2</value>
+        </property>
+         <property>
+                 <name>yarn.resourcemanager.hostname.rm1</name>
+                 <value>node1</value>
+         </property>
+         <property>
+                 <name>yarn.resourcemanager.hostname.rm2</name>
+                 <value>node2</value>
+         </property>
+         <property>
+                 <name>yarn.resourcemanager.zk-address</name>
+                 <value>node2:2181,node3:2181</value>
+        </property>
+        3、在node2、node3分别配置这两个配置文件。
+        4、在node1上启动yarn。
+        5、在另外一个节点上单独启动(node2)。
+        命令:yarn-daemon.sh start
+        6、在node1启动hdfs
+        命令:start-dfs.sh
+        7、对搭建的yarn集群进行测试
+        8、集群搭建测试成功,也可以通过node01:8088在网页中查看
+
+# 安装kafka
+1）解压安装包
+tar -zxvf kafka_2.11-0.11.0.2.tgz -C /usr/local/
+2）修改解压后的文件名称
+mv kafka_2.11-0.11.0.2 kafka_2.11-0.11
+3）在/usr/local/kafka_2.11.0.11目录下创建logs文件夹
+mkdir logs
+4）修改配置文件
+cd config/
+vim server.properties
+输入以下内容：
+#broker的全局唯一编号，不能重复
+broker.id=0
+#删除topic功能使能
+delete.topic.enable=true
+#kafka运行日志（还有生产者发给kafka的消息）存放的路径
+log.dirs=usr/local/kafka _2.11-0.11/logs
+#配置连接Zookeeper集群地址
+zookeeper.connect=node1:2181,node2:2181,node3:2181
+5）配置环境变量
+sudo vi /etc/profile
+#KAFKA_HOME
+export KAFKA_HOME=/usr/local/kafka _2.11-0.11
+export PATH=$PATH:$KAFKA_HOME/bin
+source /etc/profile
+6）分发安装包
+scp -r  kafka _2.11-0.11 node2 $:PWD
+scp -r  kafka _2.11-0.11 node3 $:PWD
+	注意：分发之后记得配置其他机器的环境变量
+7）分别在node2和node3上修改配置文件/opt/module/kafka/config/server.properties中的broker.id=1、broker.id=2
+	注：broker.id不得重复
+# 安装redis集群
+创建集群(最少有3个节点，6台服务器，每个节点有一个备份机)：
+        1.创建集群文件夹：
+            命令：
+                cd /usr/local
+                mkdir redis-cluster
+        2.复制redis(-r表示全部文件)为redis01到创建的集群中
+            命令：
+                cp redis redis-cluster/redis01 -r
+        3.修改配置文件
+            命令：
+                cd /usr/local/redis-cluster
+                cd redis01
+                vi redis.conf
+                    找到port 6379  改为port XXXX
+                    找到cluster-enabled yes将前面的注释去掉(表示开启集群)
+        4.复制redis01  复制5份，修改port xxxx
+            命令：
+                cd /usr/local/redis-cluster
+                cp redis redis02 -r
+                cp redis redis03 -r
+        5.设置开启脚本
+            命令：
+                cd /usr/local/redis-cluster
+                vi startall.sh
+                内容 cd redis01
+                     ./bin/redis-server redis.conf
+                     cd ..
+                     cd redis02
+                     ./bin/redis-server redis.conf
+                     cd ..等
+                保存退出wq
+        6.设置权限
+            命令：
+                cd /usr/local/redis-cluster
+                chmod u+x startall.sh
+        7.开启集群实例
+            命令：
+                cd /usr/local/redis-cluster
+                ./startall.sh
+        8.查看是否开启
+            命令：
+                ps -ef | grep redis
+        9.编写停止脚本
+            命令：
+                cd /usr/local/redis-cluster
+                 vi stopall.sh
+                内容 cd redis01
+                     ./bin/redis-cli -p 7001 shutdown
+                     cd ..
+                     cd redis02
+                     ./bin/redis-cli -p 7002 shutdown
+                     cd ..等
+                保存退出wq
+        10.设置权限
+            命令：
+                cd /usr/local/redis-cluster
+                chmod u+x stopall.sh
+        11.执行
+            命令：
+                cd /usr/local/redis-cluster
+                ./stopall.sh
+        12.搭建集群环境
+            命令：
+                yum install ruby
+                yum install rubygems
+                上传包（rz）redis-3.0.0.gem
+                安装(gem install redis-3.0.0.gem)
+        13.进入 redis3.0.7/src下  执行表示开启集群
+            命令：
+                cd /usr/soft/redis-3.0.7/src
+                ll *.rb
+                ./redis-trib.rb
+        14.把集群实例开启，搭建集群
+            命令：
+                cd /usr/local/redis-cluster
+                ./startall.sh
+                cd /usr/soft/redis-3.0.7/src
+            ./redis-trib.rb create --replicas 1 192.168.56.170:7001 192.168.56.171:7002 192.168.56.172:7003 192.168.56.173:7004 192.168.56.174:7005 192.168.56.175:7006
+        15.连接集中的客户端：进入随便一个节点连接
+            命令：
+                cd /usr/local/redis-cluster/redis01
+                ./bin/redis-cli -p 7001 -c  （ -c 连接集群，可以自动跳槽）
+# 安装spark集群
+1 安装spark包
+1.1 将spark-2.0.2-bin-hadoop2.7.tgz主机Mac的终端分别传输到node1中的/usr/local目录下
+1.2 使用命令进行解压缩spark-2.0.2-bin-hadoop2.7.tgz，
+命令为：tar -zvxf spark-2.0.2-bin-hadoop2.7.tgz
+1.3 重命名：mv spark-2.0.2-bin-hadoop2.7 spark
+1.4 配置spark相关的环境变量
+vi ~/.bashrc
+export SPARK_HOME=/usr/local/spark
+export PATH=$SPARK_HOME/bin
+export CLASSPATH=.:$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+source ~/.bashrc
+2 修改spark-env.sh文件
+2.1 键入命令：cd /usr/local/spark/conf
+2.2 键入命令：mv spark-env.sh.template spark-env.sh
+2.3 修改spark-env.sh，命令：vi spark-env.sh
+###jdk安装目录
+export JAVA_HOME=/usr/java/latest
+###scala安装目录
+export SCALA_HOME=/usr/local/scala
+###spark集群的master节点的ip，node1
+export SPARK_MASTER_IP=192.168.56.101
+###指定worker节点能够最大分配给Excutors的内存大小
+export SPARK_WORKER_MEMORY=1g
+###hadoop集群的配置文件目录
+export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
+3 配置slaves文件
+3.1 修改/usr/local/spark/conf/slaves.template的名字，命令：mv slaves.template slaves
+3.2 键入命令：vi slaves
+node2
+node3
+4  将node1中的spark、~/.bashrc通过scp命令拷贝node2、node3中，命令：
+scp -r spark root@node2:/usr/local
+scp -r spark root@node3:/usr/local
+scp ~/.bashrc root@node2:~
+scp ~/.bashrc root@node3:~
+然后，在node2和node3中，分别执行命令：source ~/.bashrc，使得配置文件生效
+5 启动Spark集群
+5.1 首先进入/usr/local/spark/sbin目录下
+5.2 执行./start-all.sh
+5.3 使用jps，8080端口，spark-shell进行检查集群是否启动成功
+主机上浏览器8080端口检查结果
+
+Spark-shell
+
+# 安装hdfs集群
+1、修改linux主机名
+hostnamectl set-hostname "node1"
+hostnamectl set-hostname "node1" --static
+hostnamectl set-hostname "node1" --transient
+hostnamectl set-hostname "node1" --pretty
+
+修改网络映射
+vi /etc/hosts
+192.168.56.101 node1
+
+查看防火墙状态
+firewall-cmd --state
+关闭防火墙
+systemctl stop firewalld.service
+永久禁用防火墙
+systemctl disable firewalld.service
+
+查看selinux
+/usr/sbin/sestatus -v
+关闭selinux
+vi /etc/selinux/config
+SELINUX=disabled
+然后重启
+
+安装jdk
+tar -zxvf jdk.tgz -C /usr/local
+vi /etc/profile
+JAVA_HOME=/usr/local/jdk1.8.0_192
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME PATH
+
+安装完全分布式hdfs
+tar -zxvf hadoop.2.8.5.tar.gz -C /usr/local
+cd hadoop/etc/hadoop
+vi core-site.xml
+<configuration>
+<property>
+<name>fs.defaultFS</name>
+<value>hdfs://node1/</value>
+</property>
+</configuration>
+
+vi hdfs-site.xml
+<configuration>
+<property>
+<name>dfs.namenode.name.dir</name>
+<value>/usr/local/hdpdata/name</value>
+</property>
+
+<property>
+<name>dfs.datanode.data.dir</name>
+<value>/usr/local/hdpdata/data</value>
+</property>
+<property>
+  <name>dfs.namenode.secondary.http-address</name>
+  <value>node2:50090</value>
+</property>
+<property>
+  <name>dfs.namenode.checkpoint.dir</name>
+  <value>/usr/local/hdpdata/namesecondary</value>
+</property>
+</configuration>
+vi slaves
+node1
+node2
+node3
+//分发到所有节点
+vi /etc/profile
+HADOOP_HOME=
+PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+export ...
+source /etc/profile
+//免密登录
+ssh-genkey -t rsa  //生成密钥
+ssh-copy-id 要进行免密登录的ip  //namenode需要对所有的节点进行免密
+
+启动命令
+start-dfs.sh
+停止
+stop-dfs.sh
+#  springboot部署（配置文件怎么配）
