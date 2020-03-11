@@ -1,0 +1,411 @@
+部署项目
+1.新建
+
+2.配置node1
+（1）设置存储，新建控制器，添加盘片
+
+（2）网卡一：
+        界面名称：
+        网卡二：
+启动机器
+3.英文状态下，continue
+    设置时间，设置盘符，设置密码
+
+4.cd /etc/sysconfig/network-scripts
+    没有ifcfg-enp0s8情况下
+（1）复制cp ifcfg-enp0s3 ifcfg-enp0s8
+
+ （2）配置ifcfg-enp0s3
+        编写ifcfg-enp0s3：vi ifcfg-enp0s3
+                首行添加HWADDR=服务器网卡一MAC地址
+
+
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=dhcp
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=enp0s3
+UUID=48341c2d-400a-47ed-8501-46ee5088b3a4
+DEVICE=enp0s3
+ONBOOT=yes
+（3）配置ifcfg-enp0s8
+        编写ifcfg-enp0s8：同上
+        首行添加HWADDR=服务器网卡二MAC地址
+HWADDR=服务器网卡二MAC地址
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=192.168.56.131（自己设IP地址）
+DNS1=192.168.56.1
+NETMASK=255.255.255.0
+NAME=enp0s3
+UUID=48341c2d-400a-47ed-8501-46ee5088b3a4
+DEVICE=enp0s8
+ONBOOT=yes
+
+（4）esc退出编辑模式
+         shift+zz保存退出
+（5）重启网卡服务 service network restart
+
+另外再复制两台机器，秀给以上两个文件，重新启动网卡
+3.修改主机名
+hostnamectl set-hostname "hdp1"
+hostnamectl set-hostname "hdp1" --static
+hostnamectl set-hostname "hdp1" --transient
+hostnamectl set-hostname "hdp1" --pretty
+
+4.修改网络映射
+vi /etc/hosts
+192.168.56.101 hdp1
+5.查看防火墙状态
+    firewall-cmd --state
+    关闭防火墙
+    systemctl stop firewalld.service
+    永久禁用防火墙
+    systemctl disable firewalld.service
+6.查看selinux
+    /usr/sbin/sestatus -v
+    关闭selinux
+    vi /etc/selinux/config
+    SELINUX=disabled
+    然后重启
+hadoop集群搭配
+0.准备工作
+修改linux主机名
+hostnamectl set-hostname “hdp1”
+hostnamectl set-hostname “hdp1” --static
+hostnamectl set-hostname “hdp1” --transient
+hostnamectl set-hostname “hdp1” --pretty
+修改网络映射(每台虚拟机都要配置)
+vi /etc/hosts
+192.168.56.101 hdp1
+192.168.56.102 hdp2
+192.168.56.103 hdp3
+修改win(C:\Windows\System32\drivers\etc\host 将上一步ip复制到host文件)
+1.将jdk上传解压到linux目录下
+        tar -zxvf jdk -C /usr/local
+
+查看进程/usr/sbin/sestatus -v
+
+
+2.配置jdk文件
+
+vi /etc/profile
+JAVA_HOME=/usr/local/jdk1.8.0_192
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME PATH
+刷新 :source /etc/profile;12345
+3.安装完全分布式hdfs
+tar -zxvf hadoop.2.8.5.tar.gz -C /usr/local
+4.将hadoop-env.sh 中的JAVA_HOME路径更改
+vi /usr/local/hadoop-2.8.5/etc/hadoop/hadoop-env.sh
+export JAVA_HOME=/usr/local/jdk1.8.0_192
+5.更改/usr/local/hadoop-2.8.5/etc/hadoop下core-site.xml中的配置
+vi core-site.xml
+<configuration>
+<property>
+<name>fs.defaultFS</name>
+<value>hdfs://hdp-01/</value>
+</property>
+</configuration>
+
+
+6.更改/usr/local/hadoop-2.8.5/etc/hadoop下hdfs-site.xml中的配置
+vi hdfs-site.xml
+<configuration>
+<property>
+<name>dfs.namenode.name.dir</name>
+<value>/usr/local/hdpdata/name</value>
+</property>
+
+<property>
+<name>dfs.datanode.data.dir</name>
+<value>/usr/local/hdpdata/data</value>
+</property>
+<property>
+  <name>dfs.namenode.secondary.http-address</name>
+  <value>hdp2:50090</value>
+</property>
+<property>
+  <name>dfs.namenode.checkpoint.dir</name>
+  <value>/usr/local/hdpdata/namesecondary</value>
+</property>
+</configuration>
+
+
+
+7.修改/usr/local/hadoop-2.8.5/etc/hadoop下slaves
+vi slaves
+写入
+hdp1
+hdp2
+hdp3
+8.配置 vi /etc/profile
+
+
+9.分发profile
+切换到cd /etc 下
+执行 scp profile hdp2:$ PWD | scp profile hdp3:$ PWD(每台虚拟机都要分发)
+10.分发hadoop进行安装
+scp hadoop hdp_:$PWD
+11.分发hadoop-env.sh/core-site.xml/hdfs-site.xml
+scp hadoop-env.sh core-site.xml hdfs-site.xml hdp_:$PWD
+12.免密登陆
+ssh-keygen -t rsa
+ssh-copy-id 192.168.56.10?(每台机器都要免密对自己也要配置)
+13.在/usr/local下创建文件
+mkdir hdpdata(每台虚拟机配置)
+14.在/usr/local/hadoop-2.8.5/etc/hadoop执行
+    hadoop namenode -format
+15.启动namenodeJAVA_HOME=/usr/local/jdk1.8.0_192
+HADOOP_HOME=/usr/local/hadoop-2.8.5
+PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+export JAVA_HOME HADOOP_HOME PATH;
+hadoop-daemon.sh start namenode
+16.启动datanode
+hadoop-daemon.sh start datanode
+(其他只启动datanode)
+18.关闭防火墙(没有关闭不显示页面)
+查看防火墙状态
+firewall-cmd --state
+关闭防火墙
+systemctl stop firewalld.service
+永久禁用防火墙
+systemctl disable firewalld.service
+yarn配置
+1.将/usr/local/hadoop-2.8.5/etc/hadoop目录下mapred-site.xml复制重命名
+cp mapred-site.xml.template mapred-site.xml
+2.修改mapred-site.xml
+vi mapred-site.xml
+
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+
+
+3.修改/usr/local/hadoop-2.8.5/etc/hadoop目录下yarn-site.xml
+vi yarn-site.xml
+
+<property>
+<name>yarn.resourcemanager.hostname</name>
+<value>hdp20-01</value>
+</property>
+
+
+<property>
+<name>yarn.nodemanager.aux-services</name>
+<value>mapreduce_shuffle</value>
+</property>
+4.分发yarn-site.xml  mapred-site.xml
+scp yarn-site.xml  mapred-site.xml hdp_:$PWD
+5.启动start-yarn.sh
+2.Zookeeper安装和命令
+zookeeper 2888是leader rpc通信端口
+                 3888是选举端口
+                 2181是对外服务端口
+
+选举机制：
+    集群初始化时，单个节点启动后，先访问集群中所有机器的2888端口，看是否有leader，如果没有leader，则开启3888端口
+        进行广播选举，选举时先接收所有的其他选票，然后和自己的myid进行对比，投myid大的。
+                当票数超过一半时，该节点就会成为leader
+               当集群leader挂掉后，接着进行投票，先比较数据版本，最新的版本优先，在最新版本中选取myid最大的当leader
+
+        zk集群必须时2n+1台
+        存活的机器必须大于n+1台才能正常提供服务
+
+解压
+tar -zxvf zookeeper3.4.14.tar.gz -C /usr/local
+
+vi zoo.cfg
+dataDir=/usr/local/zkdata
+在最后添加
+server.1=hdp1:2888:3888
+server.2=hdp2:2888:3888
+server.3=hdp3:2888:3888
+
+mkdir -p /usr/local/zkdata
+在zkdata目录里创建一个文件叫myid，里面写hdp1里写1     hdp2里写2  hdp3里写3
+echo 1 > myid
+
+启动
+bin/zkServer.sh start
+查看状态
+bin/zkServer.sh status
+命令行客户端
+bin/zkCli.sh
+bin/zkCli.sh -server hdp1:2181,hdp2:2181,hdp3:2181
+
+
+ls
+get 获取
+create /aa helloworld 创建
+rmr /aa 删除
+set /a 19
+
+
+
+zookeeper节点类型
+PERSISTENT 持久型，创建者就算和集群断开连接，数据也会保存
+EPHEMERAL 短暂型，创建者一旦和集群断开连接，zk就会删除节点
+创建短暂型节点  create -e /eee "hello"
+
+SEQUENTIAL 带序号的
+create -s /ccc 19  持久的带序号的
+create -e -s /ccc 19  短暂的带序号的
+mysql安装步骤
+
+rpm -e --nodeps postfix-2.10.1-6.el7.x86_64
+rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64
+yum -y install perl perl-devel
+yum -y install autoconf
+yum install -y net-tools
+
+
+tar -xvf MySQL-5.6.42-1.el7.x86_64.rpm-bundle.tar
+rpm -ivh MySQL-server-5.6.42-1.el7.x86_64.rpm
+rpm -ivh MySQL-client-5.6.42-1.el7.x86_64.rpm
+
+
+/usr/bin/mysql_secure_installation
+
+cat /root/.mysql_secret
+
+oo_ewtsklwMtOtZ6
+
+mysql -uroot -p123456
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '123456' WITH GRANT OPTION;
+flush privileges;
+
+解压apache-hive-1.2.2-bin.tar.gz到/usr/local
+添加hive-site.xml到/usr/local/apache-hive-1.2.2-bin/conf
+里面的内容是
+<configuration>
+<property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:mysql://192.168.56.103:3306/hive</value>
+        <description>JDBC connect string for a JDBC metastore</description>
+</property>
+<property>
+   <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>com.mysql.jdbc.Driver</value>
+   <description>Driver class name for a JDBC metastore</description>
+</property>
+<property>
+   <name>javax.jdo.option.ConnectionUserName</name>
+   <value>root</value>
+   <description>username to use against metastore database</description>
+</property>
+<property>
+   <name>javax.jdo.option.ConnectionPassword</name>
+   <value>123456</value>
+   <description>password to use against metastore database</description>
+</property>
+<property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>/user/hive3/warehouse</value>
+    <description>location of default database for the warehouse</description>
+</property>
+</configuration>
+
+
+vi hive-env.sh
+HADOOP_HOME=/usr/local/hadoop-2.8.5
+export HIVE_CONF_DIR=/usr/local/apache-hive-2.3.5-bin/conf
+export HIVE_AUX_JARS_PATH=/usr/local/apache-hive-2.3.5-bin/lib
+:wq
+
+
+拷贝mysql的驱动jar包到/usr/local/apache-hive-1.2.2-bin/lib目录下
+启动hdfs start-dfs.sh  访问http://node2:50070确认hdfs正常工作
+启动yarn start-yarn.sh 访问http://node1:8088确认yarn正常工作
+
+进入mysql   mysql -uroot -p123456
+drop database hive;
+create database hive;
+alter database hive character set latin1;
+
+初始化hive在mysql中的元数据
+bin/schematool -dbType mysql -initSchema
+
+启动hive
+bin/hive
+安装Spark HA先决条件
+- jdk     jdk1.8.0_131
+- zookeeper    zookeeper-3.4.10
+- 配置免密登录
+
+standalone spark自带的调度框架
+--------------------------------------------------------------
+Spark安装
+	tar -zxvf spark-2.4.0-bin-hadoop2.7.tgz -C /usr/local/
+	cd /usr/local/spark-2.4.0-bin-hadoop2.7/conf
+	cp spark-env.sh.template spark-env.sh
+	cp slaves.template slaves
+
+	vi spark-env.sh 在最后添加export信息
+	export JAVA_HOME=/usr/local/jdk1.8.0_192  //导出java环境变量
+	export SPARK_MASTER_HOST=node1    //配置master地址
+	export SPARK_MASTER_PORT=7077     //配置master端口
+
+	vi slaves
+	node1
+	node2
+	node3
+	noed4
+	node5
+	配置从节点
+	分发配置文件
+	for i in {2..5}; do scp spark-env.sh node$i:$PWD; done
+	for i in {2..5}; do scp slaves node$i:$PWD; done
+--------------------------------------------------------------
+启动Spark
+	sbin/start-all.sh
+	网页访问 http://node1:8080/
+停止Spark
+	sbin/stop-all.sh
+	sbin目录不建议配置到环境变量中
+--------------------------------------------------------------
+Spark配置高可用
+	Spark的Worker推荐的Cores应该为Worker所在机器cpu的线程数
+	vi conf/spark.env
+	将export SPARK_MASTER_HOST=node1
+	export SPARK_MASTER_PORT=7077注掉
+	添加
+	export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=node3,node4,node5 -Dspark.deploy.zookeeper.dir=/spark2"
+	export SPARK_WORKER_CORES=1     //配置worder的可用核数
+	export SPARK_WORKER_MEMORY=1g   //配置worker的内存	export SPARK_WORKER_MEMORY=1g   //配置worker的内存在hdp1、hdp2、hdp3启动zookeeper
+
+  ```shell
+  /opt/zookeeper-3.4.10/bin/zkServer.sh start
+  ```
+
+- 在任意节点启动start-all.sh
+
+  ```shell
+  /opt/spark-2.4.4-bin-hadoop2.7/sbin/start-all.sh
+  ```
+
+-停止spark
+/opt/bigdata/spark/sbin/stop-all.sh
+
+- 运行spark自带jar,计算圆周率
+
+  ```shell
+  bin/spark-submit \
+  --class org.apache.spark.examples.SparkPi \
+  --master spark://hdp1:7077 \
+  --executor-memory 1G \
+  --total-executor-cores 2 \
+  examples/jars/spark-examples_2.11-2.4.4.jar \
+  10
+  ```
+
+
