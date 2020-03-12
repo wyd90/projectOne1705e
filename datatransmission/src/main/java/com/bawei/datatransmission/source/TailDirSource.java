@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class MyTailDirSource extends AbstractSource implements Configurable, PollableSource{
+public class TailDirSource extends AbstractSource implements Configurable, PollableSource{
 
 
     private String posFilePath;
