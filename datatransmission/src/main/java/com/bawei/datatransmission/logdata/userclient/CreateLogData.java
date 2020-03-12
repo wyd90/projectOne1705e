@@ -6,7 +6,7 @@ import com.bawei.datatransmission.logdata.bean.AppBaseLog;
 import java.io.*;
 import java.util.Random;
 
-public class LogData {
+public class CreateLogData {
 
    //创建随机对象
     private static Random random = new Random();
@@ -31,7 +31,7 @@ public class LogData {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream("C:\\Users\\lenovo\\projectOne1705e\\datatransmission\\docs\\log.txt"));
+        OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(args[0]));
         for (int i = 0; i < 100; i ++) {
             AppBaseLog abl = new AppBaseLog();
 
