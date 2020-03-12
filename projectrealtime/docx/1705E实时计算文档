@@ -20,7 +20,7 @@
          <property>
                  <name>yarn.resourcemanager.ha.rm-ids</name>
                  <value>rm1,rm2</value>
-        </property>
+        </p  roperty>
          <property>
                  <name>yarn.resourcemanager.hostname.rm1</name>
                  <value>node1</value>
