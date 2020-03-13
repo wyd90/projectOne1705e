@@ -1,0 +1,46 @@
+a1.sources = r1
+a1.channels = c1
+a1.sinks = k1
+
+#a1.sources.r1.type = netcat
+#a1.sources.r1.bind = 0.0.0.0
+#a1.sources.r1.port = 6666
+#a1.sources.r1.interceptors = i1
+#a1.sources.r1.interceptors.i1.schema =user,phone,phonetype,price,counts,time,ip
+#a1.sources.r1.interceptors.i1.types = String,String,String,Double,Integer,String,String
+#a1.sources.r1.channels = c1
+
+#使用taildir
+a1.sources.r1.type = com.bawei.flume.source.MyTailDirSource
+a1.sources.r1.channels = c1
+a1.sources.source1.channels.skipToEnd = True
+#设置位置文件的存储路径，位置文件记录着被监听的文件读取的偏移量
+a1.sources.r1.posFilePath = /root/log/flume/taildir/datas.dat
+a1.sources.r1.filePath = /root/log/flume/source/a.txt
+#设置监听的文件
+a1.sources.r1.filegroups = f1
+a1.sources.r1.filegroups.f1 = /root/log/example.log
+
+#flume消息event的header中增加一个keyvalue值叫headerKey1=example
+a1.sources.r1.headers.f1.headerKey1 = example
+#flume消息的event的header中增加一个消息来源的file的绝对路径
+a1.sources.r1.fileHeader = true
+#source的最大batch是多少，不能大于cheannl的容量
+a1.sources.r1.maxBatchCount = 300
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 500
+a1.sinks.k1.type = logger
+
+#a1.sinks.k1.type = com.ws.flume.sink.MySqlSink
+#a1.sinks.k1.url = jdbc:mysql://node1:3306/1705e
+#a1.sinks.k1.username = root
+#a1.sinks.k1.password = 123456
+a1.sinks.k1.channel = c1
+
+#a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink
+#a1.sinks.k1.kafka.topic = test2
+#a1.sinks.k1.kafka.bootstrap.servers = node1:9092
+#a1.sinks.k1.kafka.flumeBatchSize = 10
+#a1.sinks.k1.kafka.producer.acks = 1
+#a1.sinks.k1.kafka.producer.linger.ms = 5

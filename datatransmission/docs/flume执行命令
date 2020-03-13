@@ -1,0 +1,1 @@
+bin/flume-ng agent --conf conf --conf-file conffor1705E/taildir.conf --name a1 -Dflume.root.logger=INFO,console
