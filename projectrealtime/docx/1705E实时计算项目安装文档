@@ -20,7 +20,7 @@
          <property>
                  <name>yarn.resourcemanager.ha.rm-ids</name>
                  <value>rm1,rm2</value>
-        </property>
+        </p  roperty>
          <property>
                  <name>yarn.resourcemanager.hostname.rm1</name>
                  <value>node1</value>
@@ -68,8 +68,8 @@ export KAFKA_HOME=/usr/local/kafka _2.11-0.11
 export PATH=$PATH:$KAFKA_HOME/bin
 source /etc/profile
 6）分发安装包
-scp -r  kafka _2.11-0.11 node2 $:PWD
-scp -r  kafka _2.11-0.11 node3 $:PWD
+scp -r  kafka _2.11-0.11 node2:$PWD
+scp -r  kafka _2.11-0.11 node3:$PWD
 	注意：分发之后记得配置其他机器的环境变量
 7）分别在node2和node3上修改配置文件/opt/module/kafka/config/server.properties中的broker.id=1、broker.id=2
 	注：broker.id不得重复

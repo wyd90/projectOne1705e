@@ -1,0 +1,32 @@
+1、	项目打包
+2、	Jar包放入Linux中
+3、	启动zookeeper
+bin/zkServer.sh  start
+
+启动hadoop
+start-dfs.sh
+
+启动kafk
+./kafka-server-start.sh -daemon ../config/server.properties
+
+创建topic:
+./kafka-topics.sh --create --zookeeper hadoop1:2181 --replication-factor 2 --partitions 1 --topic shopping
+
+生产者：
+./kafka-console-producer.sh --broker-list hadoop1:9092 --topic shopping
+
+查看topic信息：
+./kafka-topics.sh --describe --zookeeper hadoop1:2181 --topic shopping
+
+spark代码实时处理
+  spark运行原理：
+
+
+
+
+
+
+
+Redis实时计算
+
+将结果存到hdfs
