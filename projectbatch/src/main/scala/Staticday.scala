@@ -21,11 +21,11 @@ object Staticday {
     //    spark.sql("load data local inpath '/root/webgoods/2020-02-13.log' into table xiangmu.goods partition(day='2-13')")
     //    spark.sql("load data local inpath '/root/webgoods/2020-02-15.log' into table xiangmu.goods partition(day='2-15')")
     //从hdfs导
-    //    spark.sql("load data inpath '/webgoods/2020-02-10.log' into table xiangmu.goods partition(day='2-10')")
-    //    spark.sql("load data inpath '/webgoods/2020-02-11.log' into table xiangmu.goods partition(day='2-11')")
-    //    spark.sql("load data inpath '/webgoods/2020-02-12.log' into table xiangmu.goods partition(day='2-12')")
-    //    spark.sql("load data inpath '/webgoods/2020-02-13.log' into table xiangmu.goods partition(day='2-13')")
-    //    spark.sql("load data inpath '/webgoods/2020-02-15.log' into table xiangmu.goods partition(day='2-15')")
+    //    spark.sql("load data inpath args[0] into table xiangmu.goods partition(day='2-10')")
+    //    spark.sql("load data inpath args[0] into table xiangmu.goods partition(day='2-11')")
+    //    spark.sql("load data inpath args[0] into table xiangmu.goods partition(day='2-12')")
+    //    spark.sql("load data inpath args[0] into table xiangmu.goods partition(day='2-13')")
+    //    spark.sql("load data inpath args[0] into table xiangmu.goods partition(day='2-15')")
 
     //    //创建日活表
     //    spark.sql("create table xiangmu.goods_active_day(uid string,type string,name string,price float,num float,time string)" +
