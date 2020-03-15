@@ -32,7 +32,7 @@ object shopping2 {
       (arr(2).toLong, arr(3).toLong, arr(6))
     })
 
-    val broadcastRule: Broadcast[RDD[(Long, Long, String)]] = ssc.sparkContext.broadcast(rules)
+    val broadcastRule: Broadcast[Array[(Long, Long, String)]] = ssc.sparkContext.broadcast(rules.collect())
 
     ssc.checkpoint("D:\\shopping")
     //日志级别
@@ -75,7 +75,7 @@ object shopping2 {
         //return：购买时间:城市:用户名:商品名称 订单金额
         val resRedis: RDD[(String, Int)] = filterLines.map(line => {
           val arr = line.split(",")
-          val city = IpUtil.searchIp(broadcastRule.value.collect(), arr(6).toLong)
+          val city = IpUtil.searchIp(broadcastRule.value, arr(6).toLong)
           ((arr(5) + ":" + city + ":" + arr(0) + ":" + arr(2)), arr(4).toInt * arr(5).toInt)
         })
 
@@ -98,7 +98,7 @@ object shopping2 {
         //return:用户名 商品名称 单价 购买数量 订单金额 购买时间 城市
         val resHdfs: RDD[(String,String,String,String,Int,String,String)] = filterLines.map(line => {
           val arr = line.split(",")
-          val city = IpUtil.searchIp(broadcastRule.value.collect(),arr(6).toLong)
+          val city = IpUtil.searchIp(broadcastRule.value,arr(6).toLong)
           (arr(0),arr(2),arr(3),arr(4),arr(3).toInt * arr(4).toInt,arr(5),city)
         })
 
