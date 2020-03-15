@@ -282,4 +282,59 @@ ssh-copy-id 要进行免密登录的ip  //namenode需要对所有的节点进行
 start-dfs.sh
 停止
 stop-dfs.sh
+
 #  springboot部署（配置文件怎么配）
+ springboot介绍
+ 大家知道springboot是基于spring研发出来的，但是要知道springboot其实并不是对spring功能的增强，而是提供了一种快速使用spring的方式或者说是工具。
+ springboot集合了大量的第三方库，Spring Boot应用中这些第三方库几乎可以是零配置的开箱即用，大部分的 Spring Boot 应用都只需要非常少量的配置代码（基于 Java 的配置），开发者能够更加专注于业务逻辑。
+ - 优点
+ – 1.springboot本身就是基于spring诞生的，可以说只要spring能实现的功能，springboot都能实现，功能强大。
+ – 2.方便构建项目，我们都知道以前在使用spring框架构建项目的时候，免不了很多的配置文件，各种装配bean，现在springboot几乎实现了0配置文件，它采用了java config的方式，对spring进行配置，采用注解配置的方式，简化了原先的繁多的配置文件，极高的提高了工作效率。通过@Configuration 和@Bean 两个注解完成配置文件。
+
+ – 3.简化了maven配置，虽然spring4.0的出现似乎也已经做到了无xml配置，但是却需要繁多的maven配置，甚至达到了数百行，如今springboot集合了大量的第三方库，将大量的依赖配置集成简单的maven配置，
+
+ springboot项目在创建的时候就会自带一些maven配置，这些配置就已经集成了大量的依赖，不在需要开发者耗时耗力的去添加依赖配置了。
+ – 4 简化部署
+ springboot内部嵌入了tomcat，在spring-boot-starter-web里可以找到，
+
+ 这样在研发过程中就不在需要tomcat服务器，并且springboot项目在打完jar之后，可以直接启动也不需要另外的本地tomcat。也就是说拿到springboot项目jar之后，完全可以在一台只有jdk的机器上启动了。
+
+ springboot启动
+ 上面说过了springboot项目自带了tomcat，所以项目启动和部署不需要额外的tomcat服务器了，这里关键的是springboot项目会有一个启动类，这个是springboot项目的入口
+ 上面可以看出启动类需要一个关键的注解@SpringBootApplication，看下改注解背后的内容，
+ @Target(ElementType.TYPE)            // 注解的适用范围，其中TYPE用于描述类、接口（包括包注解类型）或enum声明
+ @Retention(RetentionPolicy.RUNTIME)  // 注解的生命周期，保留到class文件中（三个生命周期）
+ @Documented                          // 表明这个注解应该被javadoc记录
+ @Inherited                           // 子类可以继承该注解
+ @SpringBootConfiguration             // 继承了Configuration，表示当前是注解类
+ @EnableAutoConfiguration             // 开启springboot的注解功能，springboot的四大神器之一，其借助@import的帮助
+ @ComponentScan(excludeFilters = {    // 扫描路径设置（具体使用待确认）
+         @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+         @Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+ public @interface SpringBootApplication {
+ ...
+ }
+ 可以看出@SpringBootApplication使用了多个注解，其中最为重要的就是
+ @Configuration 使用javaconfig方式进行配置，形式的Spring Ioc容器的配置类
+ @EnableAutoConfiguration 比较重要的，这里不做解释了
+ @ComponentScan 扫描注解，自动扫描并加载符合条件的组件
+ 其实可以说，你可以使用@SpringBootApplication，你也可以使用以上三个注解都一样。
+ 有个这些，你就可以简单的理解，启动一个springboot项目，会从启动类入口进去，通过@SpringBootApplication注解之后自动的去扫描加载一些javaconfig 配置，启动内置tomcat将项目运行起来。
+ springboot项目部署
+ 我们以前在部署web项目的时候基本山都是打成war包放到tomcat的webapp下面，启动tomcat。这种方式不仅仅耗时耗力，还需要要求部署项目的服务器事先就要有能够部署的环境。有时候还需要手动修改tomcat配置文件。
+ springboot就是极大的简化了项目的部署。
+ 我们只需要将项目打成jar包，然后放在只需要有jdk的服务器上，java -jar ***就能启动项目了。
+ 那么问题来了，以往我们对于web项目都是war包的形式进行部署的，为啥springboot项目却能想启动java应用程序一样部署呢？
+ 上面也已经说过了，springboot是内置tomcat了的，所以项目启动的时候回自动启动tomcat，但是我们都知道启动jar文件都是需要有主类（main），
+ 没错，它是就是我们的启动类，既然是主类，那肯定就会有启动弄类配置的吧，就是这个maven-shade-plugin，去找找看。
+
+
+ springboot通过maven插件配置了启动类，所以就可以java -jar的形式启动项目，启动类被启动之后就会扫描加载配置，启动内置的tomcat等，最后完成了项目的启动部署了。
+
+
+
+
+
+
+
+
