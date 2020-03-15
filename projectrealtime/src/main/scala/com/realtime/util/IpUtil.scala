@@ -10,7 +10,7 @@ object IpUtil {
     })
     ipNum
   }
-
+  // 查询IP所属城市
   def searchIp(ipRules: Array[(Long,Long,String)], ip: Long): String ={
     var province: String = "未知"
     var low = 0;

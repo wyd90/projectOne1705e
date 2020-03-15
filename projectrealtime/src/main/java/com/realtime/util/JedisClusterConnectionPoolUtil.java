@@ -67,6 +67,7 @@ public class JedisClusterConnectionPoolUtil {
         conn.hset(key,field,value);
     }
 
+    //查询是否存在方法
     public static boolean hexist(String key, String field) {
         JedisCluster conn = JedisClusterConnectionPoolUtil.getConnection();
         Map<String, JedisPool> clusterNodes = conn.getClusterNodes();
@@ -82,7 +83,7 @@ public class JedisClusterConnectionPoolUtil {
         }
         return hexists;
     }
-
+// 得到一个方法
     public static Long hget(String key, String field) {
         JedisCluster conn = JedisClusterConnectionPoolUtil.getConnection();
         Map<String, JedisPool> clusterNodes = conn.getClusterNodes();
@@ -95,6 +96,7 @@ public class JedisClusterConnectionPoolUtil {
             jedis.close();
         }
         return Long.valueOf(value);
+
     }
 }
 

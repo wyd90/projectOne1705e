@@ -84,7 +84,7 @@ object shopping2 {
         resRedis.foreach(x => {
           conn.incrBy(x._1,x._2)
         })
-        //存入redis 用作网页展示
+        //存入redis2 用作网页展示
         resRedis.foreach(x => {
           val exist = JedisClusterConnectionPoolUtil.hexist("user",x._1)
           if (exist){

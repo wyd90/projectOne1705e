@@ -5,7 +5,7 @@ import java.util.Calendar
 import org.apache.spark.rdd.RDD;
 
 object saveHdfs{
-
+  // 保存到hdfs
   def saveToHdfs(userLogs: RDD[(String,String,String,String,Int,String,String)]) = {
     //获取当前时间
     val c = Calendar.getInstance()
