@@ -1,20 +1,30 @@
 package com.realtime.sparkstreaming
 
+import java.io
+
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.SparkConf
+import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 object shopping2 {
   def main(args: Array[String]): Unit = {
+
+    val ssc = StreamingContext.getOrCreate("D:\\shopping",userdataEtlconsumer _)
+
+    ssc.start()
+    ssc.awaitTermination()
+  }
+
+  def userdataEtlconsumer:StreamingContext = {
     val spark = new SparkConf().setMaster("local[*]").setAppName("shopping")
     val ssc = new StreamingContext(spark, Seconds(20))
-
     //持久化到本地
-    ssc.checkpoint("D:\\shopping")
 
+    ssc.checkpoint("D:\\shopping")
     //日志级别
     ssc.sparkContext.setLogLevel("error")
     val kafkaParams = Map[String, Object](
@@ -53,18 +63,19 @@ object shopping2 {
         })
 
         //用户名 商品类别 商品名称 单价 购买数量 购买时间
-        val resHdfs = lines.map(line => {
+        val resHdfs: RDD[io.Serializable] = lines.map(line => {
           val arr = line.split(",")
           if (arr.length == 6) {
-            (arr(0),arr(1), arr(2), arr(3),arr(4),arr(5),arr(3).toInt*arr(4).toInt )
+            (arr(0), arr(1), arr(2), arr(3), arr(4), arr(5), arr(3).toInt * arr(4).toInt)
           } else {
             "数据格式错误"
           }
         })
-        println(resHdfs.collect().toBuffer)
-        val tuples = resRedis.collect()
 
-        println(tuples.toBuffer)
+        //        println(resHdfs.collect().toBuffer)
+        //        val tuples = resRedis.collect()
+
+        //        println(tuples.toBuffer)
 
         println("================kafka偏移量打印=======================")
         offsetRanges.foreach(x => {
@@ -76,8 +87,6 @@ object shopping2 {
         stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
       }
     })
-
-    ssc.start()
-    ssc.awaitTermination()
+    ssc
   }
 }
