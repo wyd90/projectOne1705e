@@ -84,6 +84,15 @@ object shopping2 {
         resRedis.foreach(x => {
           conn.incrBy(x._1,x._2)
         })
+        //存入redis 用作网页展示
+        resRedis.foreach(x => {
+          val exist = JedisClusterConnectionPoolUtil.hexist("user",x._1)
+          if (exist){
+            val value = JedisClusterConnectionPoolUtil.hget("user",x._1)
+            JedisClusterConnectionPoolUtil.hset("user",x._1,(x._2+value).toString())
+          }
+          JedisClusterConnectionPoolUtil.hset("user",x._1,x._2.toString)
+        })
 
         //用户名 商品类别 商品名称 单价 购买数量 购买时间 ip地址
         //return:用户名 商品名称 单价 购买数量 订单金额 购买时间 城市

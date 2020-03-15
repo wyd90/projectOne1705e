@@ -8,7 +8,7 @@ import scala.Tuple2;
 
 import java.util.*;
 
-public class JedisClusterConnectionPoolUtil{
+public class JedisClusterConnectionPoolUtil {
     //配置文件
     private static JedisPoolConfig config = null;
     //集群所有节点信息
@@ -46,7 +46,7 @@ public class JedisClusterConnectionPoolUtil{
 
 
     //查询所有Hash
-    public static  Map<String, String> hgetAll(String key) {
+    public static Map<String, String> hgetAll(String key) {
         JedisCluster conn = JedisClusterConnectionPoolUtil.getConnection();
         Map<String, JedisPool> clusterNodes = conn.getClusterNodes();
         Set<Map.Entry<String, JedisPool>> entries = clusterNodes.entrySet();
@@ -57,28 +57,46 @@ public class JedisClusterConnectionPoolUtil{
 
             value = jedis.hgetAll(key);
             jedis.close();
-
-
         }
         return value;
     }
-//存入hm类型的
-    public static String hmset(String key, String item) {
+
+    //存入hm类型的
+    public static void hset(String key, String field,String value) {
+        JedisCluster conn = JedisClusterConnectionPoolUtil.getConnection();
+        conn.hset(key,field,value);
+    }
+
+    public static boolean hexist(String key, String field) {
         JedisCluster conn = JedisClusterConnectionPoolUtil.getConnection();
         Map<String, JedisPool> clusterNodes = conn.getClusterNodes();
         Set<Map.Entry<String, JedisPool>> entries = clusterNodes.entrySet();
-        String result = null;
+        Boolean hexists = false;
         for (Map.Entry<String, JedisPool> node : entries) {
             JedisPool jedisPool = node.getValue();
             Jedis jedis = jedisPool.getResource();
-//            String hmset = jedis.hmset(item);
+            hexists = jedis.hexists(key, field);
+            if (hexists) {
+                break;
+            }
         }
-        return result;
+        return hexists;
     }
 
-
+    public static Long hget(String key, String field) {
+        JedisCluster conn = JedisClusterConnectionPoolUtil.getConnection();
+        Map<String, JedisPool> clusterNodes = conn.getClusterNodes();
+        Set<Map.Entry<String, JedisPool>> entries = clusterNodes.entrySet();
+        String value = "";
+        for (Map.Entry<String, JedisPool> node : entries) {
+            JedisPool jedisPool = node.getValue();
+            Jedis jedis = jedisPool.getResource();
+            value = jedis.hget(key,field);
+            jedis.close();
+        }
+        return Long.valueOf(value);
+    }
 }
-
 
 //    ////获取keyAndValue
 //    public static void main(String[] args) {
